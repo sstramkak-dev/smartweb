@@ -3140,9 +3140,13 @@ function openUserModal(user) {
     const bInput = g('user-branch'); if (bInput) bInput.value = user.branch || '';
     g('user-status').value = user.status || 'active';
     const emailInput = g('user-email'); if (emailInput) emailInput.value = user.email || '';
+    const pwHint = g('user-pw-hint'); if (pwHint) pwHint.style.display = '';
+    const pwReq = g('user-pw-required'); if (pwReq) pwReq.style.display = 'none';
   } else {
     if (title) title.textContent = 'Add User';
     if (btn) btn.textContent = 'Add User';
+    const pwHint2 = g('user-pw-hint'); if (pwHint2) pwHint2.style.display = 'none';
+    const pwReq2 = g('user-pw-required'); if (pwReq2) pwReq2.style.display = '';
   }
   openModal('modal-addUser');
 }
@@ -3150,9 +3154,10 @@ function openUserModal(user) {
 function submitUser(e) {
   e.preventDefault();
   const editId = rv('user-edit-id');
+  const typedPassword = rv('user-password');
   const obj = {
     id: editId || uid(),
-    name: rv('user-name'), username: rv('user-username'), password: rv('user-password'),
+    name: rv('user-name'), username: rv('user-username'), password: typedPassword,
     role: rv('user-role'), branch: rv('user-branch'), status: rv('user-status'),
     email: rv('user-email') || ''
   };
@@ -3163,7 +3168,11 @@ function submitUser(e) {
   if (dupUser) { showAlert('Username already exists. Please choose a different username.'); return; }
   if (editId) {
     const idx = staffList.findIndex(function(x) { return x.id === editId; });
-    if (idx >= 0) staffList[idx] = obj;
+    if (idx >= 0) {
+      // Preserve existing password if the field was left blank during edit
+      if (!obj.password) obj.password = staffList[idx].password || '';
+      staffList[idx] = obj;
+    }
   } else {
     staffList.push(obj);
   }
@@ -3189,21 +3198,49 @@ function deleteUser(id) {
   }, 'Delete User', 'Delete');
 }
 
+function toggleStaffPassword(id) {
+  const cell = g('pw-cell-' + id);
+  const icon = g('pw-eye-' + id);
+  if (!cell || !icon) return;
+  if (cell.dataset.visible === '1') {
+    cell.textContent = '••••••••';
+    cell.dataset.visible = '0';
+    icon.className = 'fas fa-eye';
+  } else {
+    cell.textContent = cell.dataset.pw;
+    cell.dataset.visible = '1';
+    icon.className = 'fas fa-eye-slash';
+  }
+}
+
 function renderStaffTable() {
   const tbody = g('staff-table');
   if (!tbody) return;
+  const isAdmin = currentRole === 'admin';
+  const pwHeader = g('staff-pw-header');
+  if (pwHeader) pwHeader.style.display = isAdmin ? '' : 'none';
+  const colSpan = isAdmin ? 9 : 8;
   if (!staffList.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#999;"><i class="fas fa-users-cog" style="font-size:2rem;display:block;margin-bottom:8px;"></i>No users yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="text-align:center;padding:40px;color:#999;"><i class="fas fa-users-cog" style="font-size:2rem;display:block;margin-bottom:8px;"></i>No users yet</td></tr>';
     return;
   }
   tbody.innerHTML = staffList.map(function(u, i) {
     const rolePill = u.role === 'Admin' ? 'pill-green' : u.role === 'Cluster' ? 'pill-purple' : u.role === 'Supervisor' ? 'pill-blue' : u.role === 'Agent' ? 'pill-orange' : 'pill-gray';
     const statusPill = u.status === 'active' ? 'pill-green' : 'pill-red';
     const avIdx = i % 8;
+    const pwCell = isAdmin
+      ? '<td style="white-space:nowrap;">' +
+          '<span id="pw-cell-' + esc(u.id) + '" data-pw="' + esc(u.password || '') + '" data-visible="0" style="font-family:monospace;letter-spacing:1px;">••••••••</span>' +
+          '<button type="button" onclick="toggleStaffPassword(\'' + esc(u.id) + '\')" style="background:none;border:none;cursor:pointer;margin-left:6px;color:#666;padding:0;" title="Toggle password visibility">' +
+            '<i id="pw-eye-' + esc(u.id) + '" class="fas fa-eye"></i>' +
+          '</button>' +
+        '</td>'
+      : '';
     return '<tr>' +
       '<td>' + (i + 1) + '</td>' +
       '<td><div class="name-cell"><span class="avatar-circle av-' + avIdx + '" style="width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;margin-right:8px;">' + esc(ini(u.name)) + '</span>' + esc(u.name) + '</div></td>' +
       '<td>' + esc(u.username) + '</td>' +
+      pwCell +
       '<td><span class="pill ' + rolePill + '">' + esc(u.role) + '</span></td>' +
       '<td>' + esc(u.branch || '') + '</td>' +
       '<td>' + (u.email
