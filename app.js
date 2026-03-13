@@ -65,8 +65,11 @@ function _gsPost(payload, retries) {
   retries = retries === undefined ? 2 : retries;
   return fetch(GS_URL, {
     method: 'POST',
-    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
   }).catch(function(err) {
     if (retries > 0) {
       return new Promise(function(resolve) { setTimeout(resolve, 1500); })
@@ -150,13 +153,14 @@ function syncSheet(sheetName, dataArray) {
   if (lbl) lbl.textContent = 'Syncing\u2026';
 
   _gsPost({ sheet: sheetName, action: 'sync', data: normalizeArrayForSheet(dataArray) })
-    .then(function() {
+    .then(function(resp) {
+      console.log('GS sync ok [' + sheetName + ']:', resp);
       if (ind) ind.className = '';
       if (lbl) lbl.textContent = 'Synced \u2713';
       setTimeout(function() { if (lbl) lbl.textContent = ''; }, 3000);
     })
     .catch(function(err) {
-      console.warn('GS sync error:', err);
+      console.warn('GS sync error [' + sheetName + ']:', err);
       if (ind) ind.className = 'error';
       if (lbl) lbl.textContent = 'Sync failed';
     });
@@ -175,6 +179,7 @@ function readSheet(sheetName) {
   if (!GS_URL) return Promise.resolve([]);
   return fetch(GS_URL, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: sheetName, action: 'read' })
   })
     .then(function(r) {
@@ -221,6 +226,7 @@ function syncUpAll() {
   ];
 
   var promises = sheets.map(function(s) {
+    console.log('Syncing sheet:', s.name, '— rows:', s.data().length);
     return _gsPost({ sheet: s.name, action: 'sync', data: normalizeArrayForSheet(s.data()) });
   });
 
