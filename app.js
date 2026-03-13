@@ -58,7 +58,7 @@ const BRANCHES = ['Phnom Penh', 'Siem Reap', 'Battambang', 'Sihanoukville', 'Kam
 const SUPPORT_CONTACT = { email: 'support@smart5g.com', phone: '+855 23 123 456' };
 
 // ── Google Sheets Sync ──────────────────────────────────────
-const GS_URL = 'https://script.google.com/macros/s/AKfycbxokMtXAEvhyUrtfCSFCDmmdv6Cr6rOFVxkBxtH_eUbQc4okwCcVNVVvOv02nmanfPdTA/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycby1wajOnbU0P3NzTFo9RcNY-HQz9E9f91XWCktsa6wLhZOA20fsx4ql5QJuBDERwaWx/exec';
 
 function _gsPost(payload, retries) {
   if (!GS_URL) return Promise.resolve();
