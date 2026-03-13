@@ -1091,7 +1091,7 @@
           <div class="table-card">
             <div class="table-responsive">
               <table class="data-table">
-                <thead><tr><th>#</th><th>Full Name</th><th>Username</th><th>Role</th><th>Branch</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>#</th><th>Full Name</th><th>Username</th><th id="staff-pw-header" style="display:none;">Password</th><th>Role</th><th>Branch</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="staff-table"></tbody>
               </table>
             </div>
@@ -1875,13 +1875,14 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="user-password">Password <span class="required">*</span></label>
+            <label class="form-label" for="user-password">Password <span class="required" id="user-pw-required">*</span></label>
             <div class="input-with-icon">
-              <input type="password" class="form-input" id="user-password" placeholder="Password" required autocomplete="new-password" />
+              <input type="password" class="form-input" id="user-password" placeholder="Password" autocomplete="new-password" />
               <button type="button" class="input-icon-btn" id="user-pwd-eye" onclick="togglePasswordVisibility('user-password','user-pwd-eye')">
                 <i class="fas fa-eye"></i>
               </button>
             </div>
+            <small id="user-pw-hint" style="display:none;color:#777;font-size:0.78rem;margin-top:3px;">Leave blank to keep the existing password.</small>
           </div>
           <div class="form-row">
             <div class="form-group form-col">
